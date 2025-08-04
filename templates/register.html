@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/loginpage.css') }}">
+    <title>Register</title>
+</head>
+<body>
+    <header class="" style="padding: 2rem 7%; position: relative; min-height: 7rem;">
+      <div class="header">
+          <a href="{{ url_for('index') }}" class="logo">
+              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo">
+          </a>
+          <nav class="navbar">
+              <a href="{{ url_for('index') }}">Home</a>
+              <a href="{{ url_for('recommender') }}">Recommendation</a>
+              <a href="{{ url_for('contact') }}">Contact</a>
+          </nav>
+          <div class="buttons">
+              <button id="user-dropdown-btn">
+                  <i class="fa-regular fa-user"></i>
+              </button>
+              <button id="menu-btn">
+                  <i class="fas fa-bars"></i>
+              </button>
+          </div>    
+      </div>
+      <nav class="navbar-d">
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('recommender') }}">Recommendation</a>
+          <a href="{{ url_for('contact') }}">Contact</a>
+      </nav>
+      <div class="dropdown">
+          <div class="dropdown-content">
+              {% if current_user.is_authenticated %}
+                  <a href="{{ url_for('profile') }}">Profile</a>
+                  <a href="{{ url_for('logout') }}">Log Out</a>
+              {% else %}
+                  <a class="active" href="{{ url_for('login') }}">Log In</a>
+                  <a href="{{ url_for('register') }}">Sign Up</a>
+              {% endif %}
+          </div>
+      </div>
+  </header>
+  <h2 style="text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #fff">Kayıt</h2>
+    
+    <form class="login-form" method="POST" action="{{ url_for('register') }}">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+      {% endwith %}
+        <label for="username">Kullanıcı adı:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Şifre:</label>
+        <input type="password" id="password" name="password" required><br>
+        <input type="submit" value="Kayıt ol">
+        <p style="text-align: center;
+        font-size: 13px;
+        margin-bottom: 20px">Hesabınız var mı? <a href="{{ url_for('login') }}" style="color:cornflowerblue;">Giriş yapın</a></p>
+    </form>
+    
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+    integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Anasayfa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+</head>
+<body class="home">
+    <!--header section start  -->
+    <header class="" style="padding: 2rem 7%; position: relative; min-height: 7rem;">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo">
+            </a>
+            <nav class="navbar">
+                <a class="active" href="{{ url_for('index') }}">Anasayfa</a>
+                <a href="{{ url_for('recommender') }}">Öneri</a>
+                <a href="{{ url_for('contact') }}">İletişim</a>
+            </nav>
+            <div class="buttons">
+                <button id="user-dropdown-btn">
+                    <i class="fa-regular fa-user"></i>
+                </button>
+                <button id="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>     
+            
+            
+        </div>
+        <nav class="navbar-d">
+            <a class="active" href="{{ url_for('index') }}">Anasayfa</a>
+            <a href="{{ url_for('recommender') }}">Öneri</a>
+            <a href="{{ url_for('contact') }}">İletişim</a>
+        </nav>
+        <div class="dropdown">
+            <div class="dropdown-content">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}">Profil</a>
+                    <a href="{{ url_for('logout') }}">Çıkış</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Giriş Yap</a>
+                    <a href="{{ url_for('register') }}">Kayıt Ol</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <!--header section end  -->
+
+    <section class="book-recommendations">
+        <h2 class="title">Yüksek Puanlı 50 Kitap</h2>
+        <div class="container">
+            {% for book, author, image, votes, rating in zip(book_name, author, image, votes, rating) %}
+                <div class="book">
+                    <a href="https://www.amazon.com/s?k={{ book|urlencode }}+{{ author|urlencode }}" target="_blank">
+                        <img src="{{ image }}" alt="{{ book }}">
+                        <h3>{{ book }}</h3>
+                    </a>
+                    <p>{{ author }}</p>
+                    <p>Oy Sayısı: {{ votes }}</p>
+                    <p>Puan: {{ rating }}</p>
+                    {% if current_user.is_authenticated %}
+                        {% if is_favorite(book) %}
+                            <form action="{{ url_for('remove_from_favorites') }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="book_title" value="{{ book }}">
+                                <button type="submit">Favorilerden Kaldır</button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('add_to_favorites') }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="book_title" value="{{ book }}">
+                                <input type="hidden" name="author" value="{{ author }}">
+                                <input type="hidden" name="image_url" value="{{ image }}">
+                                <button type="submit">Favorilere Ekle</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <script src="{{ url_for('static', filename='script/script.js') }}"></script>
+</body>
+</html>

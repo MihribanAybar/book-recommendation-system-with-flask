@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+    integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <title>Kitap Öneri Sistemi</title>
+    <style>
+        .autocomplete-suggestions {
+            background: #fff;
+            position: absolute;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .autocomplete-suggestion {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #ddd;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            display: flex;
+        }
+
+        
+
+        .recommendation-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .recommendation-item {
+            flex: 0 0 calc(18.33% - 20px); /* Üç sütuna bölme */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            width: 192px;
+        }
+        .recommendation-item:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .recommendation-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .recommendation-item-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+        .recommendation-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        .recommendation-item p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0;
+        }
+        
+        #book_title{
+            height: 4rem;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 3rem;
+            border-top-left-radius: 3rem;
+            padding: 0 20px;
+        }
+
+        #recommendations{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 2rem;
+            justify-content: center;
+        }
+        
+        #book-form .btn{
+            margin-top: 1rem;
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-top-right-radius: 3rem;
+            border-bottom-right-radius: 3rem;
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+            font-size: 1.4rem;
+            color: #fff;
+            background-color: var(--black-color);
+            cursor: pointer;         
+        }
+
+    </style>
+</head>
+<body>
+
+    <!--header section start  -->
+    <header class="home" style="padding: 2rem 7%; position: relative; min-height: 7rem;">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo">
+            </a>
+            <nav class="navbar">
+                <a href="{{ url_for('index') }}">Anasayfa</a>
+                <a class="active" href="{{ url_for('recommender') }}">Öneri</a>
+                <a href="{{ url_for('contact') }}">İletişim</a>
+            </nav>
+            <div class="buttons">
+                <button id="user-dropdown-btn">
+                    <i class="fa-regular fa-user"></i>
+                </button>
+                <button id="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>     
+            
+        </div>
+        <nav class="navbar-d">
+            <a href="{{ url_for('index') }}">Anasayfa</a>
+            <a class="active" href="{{ url_for('recommender') }}">Öneri</a>
+            <a href="{{ url_for('contact') }}">İletişim</a>
+        </nav>
+        <div class="dropdown">
+            <div class="dropdown-content">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}">Profil</a>
+                    <a href="{{ url_for('logout') }}">Çıkış</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Giriş Yap</a>
+                    <a href="{{ url_for('register') }}">Kayıt Ol</a>
+                {% endif %}
+            </div>
+        </div>
+       
+    </header>
+    <!--header section end  -->
+
+    <h2 class="title">Kitap Öneri Sistemi</h2>
+    
+    <section>
+         <form id="book-form" style="text-align: center">
+            <input type="text" id="book_title" name="book_title" autocomplete="off" placeholder="Kitap İsmi:">
+            <div id="autocomplete-list" class="autocomplete-suggestions"></div>
+            <input type="submit" class="btn" value="Önerileri Al">
+        </form>
+    </section>
+        
+    <div>
+        <h2 style="text-align: center;">Önerilen Kitaplar:</h2>
+        <ul id="recommendations"></ul>
+    </div>
+    
+    <script>
+        
+        const navbR = document.querySelector(".navbar-d");
+        const drpDown = document.querySelector(".dropdown");
+
+        //buttons
+        const menuBtn = document.querySelector("#menu-btn");
+        const drpBtn = document.querySelector("#user-dropdown-btn")
+
+        
+
+        menuBtn.addEventListener("click", function() {
+            navbR.classList.toggle("active");
+         document.addEventListener("click", function(e) {
+               if(
+                 !e.composedPath().includes(menuBtn) &&
+                  !e.composedPath().includes(navbR)
+              ) {
+                    navbR.classList.remove("active");
+                }
+          })
+        })
+
+        drpBtn.addEventListener("click", function() {
+          drpDown.classList.toggle("active");
+         document.addEventListener("click", function(e) {
+              if(
+                 !e.composedPath().includes(drpBtn) &&
+                    !e.composedPath().includes(drpDown)
+                ) {
+                   drpDown.classList.remove("active");
+              }
+            })
+        })
+
+        document.getElementById('book_title').addEventListener('input', function() {
+            const query = this.value;
+            if (query.length > 0) {
+                fetch(`/book_list?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const list = document.getElementById('autocomplete-list');
+                        list.innerHTML = '';
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.classList.add('autocomplete-suggestion');
+                            div.innerText = item.title;
+                            div.addEventListener('click', function() {
+                                document.getElementById('book_title').value = item.title;
+                                list.innerHTML = '';
+                            });
+                            list.appendChild(div);
+                        });
+                    });
+            } else {
+                document.getElementById('autocomplete-list').innerHTML = '';
+            }
+        });
+
+        document.getElementById('book-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const bookTitle = document.getElementById('book_title').value;
+            fetch('/recommend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_title=${encodeURIComponent(bookTitle)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const recommendationsList = document.getElementById('recommendations');
+                recommendationsList.innerHTML = '';
+                data.forEach(book => {
+                    const li = document.createElement('li');
+                    li.classList.add('recommendation-item');
+                    li.innerHTML = `
+                        <a href="https://www.amazon.com/s?k=${encodeURIComponent(book.title + ' ' + book.authors)}" target="_blank">
+                            <img src="${book.image_url}" alt="${book.title}">
+                            <div class="recommendation-item-content">
+                                <h3>${book.title}</h3>
+                                <p>Yazar: ${book.authors}</p>
+                                <p>Ortalama Puan: ${book.average_rating}</p>
+                                <p>Oy Sayısı: ${book.ratings_count}</p>
+                            </div>
+                        </a>
+                    `;
+                    recommendationsList.appendChild(li);
+                });
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='script/script.js') }}"></script>
+</body>
+</html>
