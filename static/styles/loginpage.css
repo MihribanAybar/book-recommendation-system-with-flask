@@ -1,0 +1,77 @@
+/* Form stilini belirliyoruz */
+.login-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 6rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Label ve input alanları */
+.login-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.login-form input[type="text"], .login-form input[type="password"] {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Submit butonu */
+.login-form input[type="submit"] {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 12px auto;
+}
+
+.login-form input[type="submit"]:hover {
+  background-color: #555;
+}
+
+/* Kayıt bağlantısı */
+.login-form p {
+  text-align: center;
+}
+
+.login-form p a {
+  color: #333;
+  text-decoration: none;
+}
+
+.login-form p a:hover {
+  text-decoration: underline;
+}
+
+/* Flashes */
+.flashes {
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
+
+.flashes li {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.flashes .success {
+  background-color: #dff0d8;
+  color: #3c763d;
+}
+
+.flashes .error {
+  background-color: #f2dede;
+  color: #a94442;
+}
